@@ -71,51 +71,56 @@ class MainActivity : ComponentActivity() {
         }
 
         Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = 16.dp)
+            ) {
                 ToDoListPage(toDoList, onUpdateToDoList = { updatedList -> toDoList = updatedList })
 
                 Spacer(modifier = Modifier.weight(1f))
+            }
 
-                Row(
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = {
+                        val saved = saveToDoList(context, toDoList)
+                        showToast = if (saved) "Data saved successfully" else "Failed to save data"
+                    },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 64.dp),
-                    horizontalArrangement = Arrangement.Start
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.LightGray)
                 ) {
-                    IconButton(
-                        onClick = {
-                            val saved = saveToDoList(context,toDoList)
-                            showToast = if (saved) "Data saved successfully" else "Failed to save data"
-                        },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(Color.LightGray)
-                    ) {
-                        Icon(
-                            Icons.Default.SaveAlt,contentDescription = "Save Data" , tint = Color.Black
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = {
-                            filePickerLauncher.launch("application/json")
-                        },
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(Color.LightGray)
-                    ) {
-                        Icon(
-                           Icons.Default.Upload, contentDescription = "Load Data", tint = Color.Black
-                        )
-                    }
+                    Icon(
+                        Icons.Default.SaveAlt, contentDescription = "Save Data", tint = Color.Black
+                    )
                 }
-
-                showToast?.let {
-                    Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                    showToast = null
+                Spacer(modifier = Modifier.width(8.dp))
+                IconButton(
+                    onClick = {
+                        filePickerLauncher.launch("application/json")
+                    },
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.LightGray)
+                ) {
+                    Icon(
+                        Icons.Default.Upload, contentDescription = "Load Data", tint = Color.Black
+                    )
                 }
             }
+
+            showToast?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                showToast = null
+            }
         }
+
     }
 
     fun saveToDoList(context: Context, toDoList: List<ToDo>): Boolean {
