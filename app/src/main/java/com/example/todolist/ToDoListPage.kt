@@ -1,10 +1,17 @@
 package com.example.todolist
 
+import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DoNotDisturb
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -13,10 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 @Composable
-fun ToDoListPage() {
-    var toDoList by remember { mutableStateOf(listOf<ToDo>()) }
+fun ToDoListPage(toDoList: List<ToDo>, onUpdateToDoList: (List<ToDo>) -> Unit) {
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var taskToEdit by remember { mutableStateOf<ToDo?>(null) }
@@ -35,39 +47,37 @@ fun ToDoListPage() {
                 .padding(padding)
                 .padding(8.dp)
         ) {
-            LazyColumn(
-                content = {
-                    itemsIndexed(toDoList) { index, item ->
-                        ToDoItem(
-                            item = item,
-                            onEditClick = {
-                                taskToEdit = item
-                                showEditDialog = true
-                            },
-                            onDeleteClick = {
-                                toDoList = toDoList.filter { it.id != item.id }
-                            },
-                            onToggleComplete = { updatedTask ->
-                                toDoList = toDoList.map {
-                                    if (it.id == updatedTask.id) updatedTask else it
-                                }
-                            }
-                        )
-                    }
+            LazyColumn {
+                itemsIndexed(toDoList) { index, item ->
+                    ToDoItem(
+                        item = item,
+                        onEditClick = {
+                            taskToEdit = item
+                            showEditDialog = true
+                        },
+                        onDeleteClick = {
+                            onUpdateToDoList(toDoList.filter { it.id != item.id })
+                        },
+                        onToggleComplete = { updatedTask ->
+                            onUpdateToDoList(toDoList.map {
+                                if (it.id == updatedTask.id) updatedTask else it
+                            })
+                        }
+                    )
                 }
-            )
+            }
         }
     }
 
     if (showAddDialog) {
         AddToDoDialog(
             onAdd = { title, description ->
-                toDoList = toDoList + ToDo(
+                onUpdateToDoList(toDoList + ToDo(
                     id = idCounter++,
                     title = title,
                     description = description,
                     isCompleted = false
-                )
+                ))
                 showAddDialog = false
             },
             onDismiss = { showAddDialog = false }
@@ -78,15 +88,16 @@ fun ToDoListPage() {
         EditTask(
             task = taskToEdit!!,
             onEdit = { updatedTask ->
-                toDoList = toDoList.map {
+                onUpdateToDoList(toDoList.map {
                     if (it.id == updatedTask.id) updatedTask else it
-                }
+                })
                 showEditDialog = false
             },
             onDismiss = { showEditDialog = false }
         )
     }
 }
+
 
 @Composable
 fun ToDoItem(
@@ -95,7 +106,7 @@ fun ToDoItem(
     onDeleteClick: () -> Unit,
     onToggleComplete: (ToDo) -> Unit
 ) {
-    var isCompleted by remember { mutableStateOf(item.isCompleted) }
+    val isCompleted = item.isCompleted
 
     Row(
         modifier = Modifier
@@ -122,27 +133,35 @@ fun ToDoItem(
 
         IconButton(
             onClick = {
-                isCompleted = !isCompleted
-                onToggleComplete(item.copy(isCompleted = isCompleted))
+                onToggleComplete(item.copy(isCompleted = !isCompleted))
             },
             modifier = Modifier
                 .size(40.dp)
                 .clip(RoundedCornerShape(50))
                 .background(if (isCompleted) Color.Green else Color.LightGray)
+                .clickable {
+                    onToggleComplete(item.copy(isCompleted = !isCompleted))
+
+                }
         ) {
             if (isCompleted) {
-                Icon(painter = painterResource(id = R.drawable.baseline_call_missed_outgoing_24), contentDescription = "Completed", tint = Color.White)
+                Icon(
+                    Icons.Default.Done,
+                    contentDescription = "Completed",
+                    tint = Color.White
+                )
             }
         }
 
         IconButton(onClick = { onEditClick() }) {
-            Icon(painter = painterResource(id = R.drawable.edit_color_24), contentDescription = "Edit")
+            Icon(Icons.Default.Edit, contentDescription = "Edit")
         }
         IconButton(onClick = { onDeleteClick() }) {
-            Icon(painter = painterResource(id = R.drawable.baseline_delete_forever_24), contentDescription = "Delete")
+            Icon(Icons.Default.Delete, contentDescription = "Delete")
         }
     }
 }
+
 
 @Composable
 fun AddToDoDialog(onAdd: (String, String) -> Unit, onDismiss: () -> Unit) {

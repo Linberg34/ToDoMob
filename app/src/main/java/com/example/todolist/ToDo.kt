@@ -1,5 +1,8 @@
 package com.example.todolist
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ToDo(
     var id: Int,
     var title : String,
@@ -8,9 +11,3 @@ data class ToDo(
 )
 
 
-fun getFakeToDo() :  List<ToDo>{
-    return listOf<ToDo>(
-        ToDo(1,"Example","Example",false),
-    ToDo(2,"May","Fuck",false)
-    );
-}

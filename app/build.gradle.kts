@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 android {
@@ -47,7 +48,10 @@ android {
 }
 
 dependencies {
+    implementation ("androidx.compose.material:material-icons-core:1.4.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.4.0")
 
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -63,4 +67,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
 }
